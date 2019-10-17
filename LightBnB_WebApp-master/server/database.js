@@ -1,13 +1,5 @@
-const { Pool } = require('pg');
 
-const pool = new Pool({
-  user: 'vagrant',
-  password: '123',
-  host: 'localhost',
-  database: 'lightbnb'
-});
-
-
+const db = require('./db/index.js')
 /// Users
 
 /**
@@ -17,6 +9,8 @@ const pool = new Pool({
  * Accepts an email address and will return a promise.
  * The promise should resolve with the user that has that email address, or null if that user does not exist
  */
+
+
 const getUserWithEmail = function(email) {
   const queryString = 
   `
@@ -24,7 +18,7 @@ const getUserWithEmail = function(email) {
   WHERE LOWER(users.email) = LOWER($1);
   `
   const values = [email];
-  return pool.query(queryString, values)
+  return db.query(queryString, values)
   .then(res => res.rows[0]);
 };
 exports.getUserWithEmail = getUserWithEmail;
@@ -42,7 +36,7 @@ exports.getUserWithEmail = getUserWithEmail;
   WHERE users.id = $1;
   `;
   const values = [id];
-  return pool.query(queryString, values)
+  return db.query(queryString, values)
   .then(res => res.rows[0]);
 };
 exports.getUserWithId = getUserWithId;
@@ -61,7 +55,7 @@ VALUES ($1, $2, $3)
 RETURNING *;
 `
 const values = [user.name, user.password, user.email];
-return pool.query(queryString, values)
+return db.query(queryString, values)
 .then(res => res.rows[0]);
 };
 
@@ -88,7 +82,7 @@ const getAllReservations = function(guest_id, limit = 10) {
   LIMIT $2;
   `
   const values = [guest_id, limit];
-  return pool.query(queryString, values)
+  return db.query(queryString, values)
   .then(res => res.rows);
 }
 exports.getAllReservations = getAllReservations;
@@ -103,12 +97,7 @@ exports.getAllReservations = getAllReservations;
  */
 
  const getAllProperties = function(options, limit = 10) {
-
-    // 1
     const queryParams = [];
-
-    console.log('******************', options)
-    // 2
     let queryString = `
     SELECT properties.*, avg(property_reviews.rating) as average_rating
     FROM properties
@@ -122,8 +111,6 @@ exports.getAllReservations = getAllReservations;
       } else {
         queryString += ' AND '}
     }
-    // 3
-
     if (options.owner_id) {
       queryParams.push(`${options.owner_id}`);
       queryString += `WHERE owner_id = $${queryParams.length}`;
@@ -152,19 +139,13 @@ exports.getAllReservations = getAllReservations;
       queryParams.push(`${options.minimum_rating}`);
       queryString += `HAVING avg(property_reviews.rating) >= $${queryParams.length}`;
     }
-    4
     queryParams.push(limit);
     queryString += 
     `
     ORDER BY cost_per_night
     LIMIT $${queryParams.length};
     `;
-
-    // 5
-    console.log(queryString, queryParams);
-  
-    // 6
-    return pool.query(queryString, queryParams)
+    return db.query(queryString, queryParams)
     .then(res => res.rows);
   }
 
@@ -187,7 +168,7 @@ const addProperty = function(property) {
   `
   const values = [property.owner_id, property.title, property.description, property.thumbnail_photo_url, property.cover_photo_url, property.cost_per_night, property.parking_spaces, property.number_of_bathrooms, property.number_of_bedrooms, property.country, property.street, property.city, property.province, property.post_code];
 
-  return pool.query(queryString, values)
+  return db.query(queryString, values)
   .then(res => res.rows[0]);
 };
 
