@@ -22,15 +22,13 @@ const pool = new Pool({
 const getUserWithEmail = function(email) {
   const queryString = `
   SELECT * FROM users
-  WHERE users.email = $1
+  WHERE LOWER(users.email) = LOWER($1)
   `;
   const values = [email];
   return pool.query(queryString, values)
   .then(res => res.rows[0]);
 };
-
 exports.getUserWithEmail = getUserWithEmail;
-
 
 
 /**
@@ -38,7 +36,6 @@ exports.getUserWithEmail = getUserWithEmail;
  * @param {string} id The id of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-
  const getUserWithId = function(id) {
   const queryString = `
   SELECT * FROM users
@@ -48,7 +45,6 @@ exports.getUserWithEmail = getUserWithEmail;
   return pool.query(queryString, values)
   .then(res => res.rows[0]);
 };
-
 exports.getUserWithId = getUserWithId;
 
 
@@ -56,10 +52,6 @@ exports.getUserWithId = getUserWithId;
  * Add a new user to the database.
  * @param {{name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
- * Accepts a user object that will have a name, email, and hashed password property.
- * This function should insert the new user into the database.
- * It will return a promise that resolves with the new user object. This object should contain the user's id after it's been added to the database.
- * Add RETURNING *; to the end of an INSERT query to return the objects that were inserted. This is handy when you need the auto generated id of an object  * you've just added to the database.
  */
 const addUser = function(user){
 const queryString = 
